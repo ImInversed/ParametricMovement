@@ -9,7 +9,7 @@
       },
       "ReplicatedStorage": {
         "Packages": {
-          "Sparkly": {
+          "ParametricMovement": {
             "$path": "src"
           },
           "$path": "Packages"
