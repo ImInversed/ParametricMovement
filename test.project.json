@@ -1,0 +1,24 @@
+{
+    "name": "ParametricMovement-test",
+    "tree": {
+      "$className": "DataModel",
+      "Players": {
+        "$properties": {
+          "CharacterAutoLoads": false
+        }
+      },
+      "ReplicatedStorage": {
+        "Packages": {
+          "Sparkly": {
+            "$path": "src"
+          },
+          "$path": "Packages"
+        }
+      },
+      "ServerScriptService": {
+        "runTests": {
+          "$path": "test/runTests.server.luau"
+        }
+      }
+    }
+  }
