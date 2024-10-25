@@ -13,3 +13,4 @@ include = [
 exclude = ["**"]
 
 [dependencies]
+fastcast = "encodedvenom/fastcastredux@0.1.3"
