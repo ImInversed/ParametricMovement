@@ -43,7 +43,6 @@ end
 
 function ParametricMovement:_start()
 	self._heartbeatConnection = RunService.Heartbeat:Connect(function(deltaTime)
-		debug.profilebegin("ara ara")
 		for index = #self._projectiles, 1, -1 do
 			local projectile = self._projectiles[index]
 
@@ -88,7 +87,6 @@ function ParametricMovement:_start()
 		for _, callback in self._movementUpdates do
 			callback(self._instances, self._cframes, self._raycasts)
 		end
-		debug.profileend()
 	end)
 end
 

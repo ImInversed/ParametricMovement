@@ -1,6 +1,6 @@
 [package]
 name = "iminversed/parametricmovement"
-version = "0.0.1"
+version = "1.0.0"
 registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
 include = [
@@ -13,4 +13,3 @@ include = [
 exclude = ["**"]
 
 [dependencies]
-fastcast = "encodedvenom/fastcastredux@0.1.3"
