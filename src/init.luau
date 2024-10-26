@@ -86,6 +86,12 @@ one projectile:
   10:07:32.208  0.0012408000000050379  -  Server - ParametricMovement:146
   10:07:32.225  0.00112659999990683  -  Server - ParametricMovement:146
   10:07:32.242  0.0013417000000117696  -  Server - ParametricMovement:146
+
+  10:15:17.438  0.012545599999839396  -  Server - ParametricMovement:132
+  10:15:17.459  0.016392699999869365  -  Server - ParametricMovement:132
+  10:15:17.474  0.012364800000113974  -  Server - ParametricMovement:132
+  10:15:17.493  0.014752999999927852  -  Server - ParametricMovement:132
+  10:15:17.514  0.012602900000047157  -  Server - ParametricMovement:132
   v1
 ]]
 
@@ -119,7 +125,15 @@ function ParametricMovement:_start()
 
 			if projectile.totalDelta > 1 then
 				for _, callback in self._movementEnds do
-					pcall(callback, instances[index], result)
+					task.spawn(function()
+						local instance = instances[index]
+
+						local success, _ = pcall(callback, instance, result)
+
+						if not success then
+							return
+						end
+					end)
 				end
 
 				table.remove(cframes, index)
@@ -143,7 +157,7 @@ function ParametricMovement:launchProjectile(movementParams: MovementParams)
 	template.Parent = workspace
 
 	-- mixed soa and aos structure
-	-- does aoa improve performance here? no
+	-- does aoa improve performance on its own here? no
 	table.insert(cframes, movementParams.origin)
 	table.insert(instances, template)
 	table.insert(projectiles, {
