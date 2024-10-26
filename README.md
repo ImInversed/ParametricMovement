@@ -5,6 +5,12 @@ ParametricMovement is around 2-3 times faster than FastCast at the sacrifice of 
 
 ParametricMovement can sustain (on my computer) up to 4,200 projectiles at 60 FPS, while FastCast can only get near 1,700.
 
+## Installation
+
+```bash
+ParametricMovement = "iminversed/parametricmovement@1.0.0"
+```
+
 ## Code Example
 
 ```lua
@@ -35,3 +41,9 @@ while true do
 	task.wait()
 end
 ```
+
+## Things that could be better
+
+I may or may not have plans for:
+ - adding methods to update movement parameters while the projectile is alive
+ - proper library typing
