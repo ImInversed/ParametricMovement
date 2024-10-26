@@ -47,9 +47,16 @@ local function instanceCacher(template: Instance, parent: Instance?, instanceCou
 		end
 	end
 
+	local function clearInstances()
+		for _, instance in instances do
+			instance:Destroy()
+		end
+	end
+
 	return {
 		getInstance = getInstance,
 		returnInstance = returnInstance,
+		clearInstances = clearInstances,
 	}
 end
 
