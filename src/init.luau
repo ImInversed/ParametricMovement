@@ -7,10 +7,7 @@ export type MovementParams = {
 
 local RunService = game:GetService("RunService")
 
-local instances = {}
-local cframes = {}
-local raycasts = {}
-local projectiles: { any } = {}
+local instanceCacher = require(script.instanceCacher)
 
 local function getPositionAtTime(t: number, origin: Vector3, initialVelocity: Vector3, acceleration: Vector3): Vector3
 	return origin + (initialVelocity * t) + acceleration * t * t * 0.5
@@ -23,7 +20,7 @@ end
 local ParametricMovement = {}
 ParametricMovement.__index = ParametricMovement
 
-function ParametricMovement.new(modelTemplate: Model | BasePart, instanceCacheAmount: number)
+function ParametricMovement.new(modelTemplate: Model | BasePart, parent: Instance?, instanceCacheAmount: number?)
 	local self = setmetatable({}, ParametricMovement)
 
 	self._template = modelTemplate
@@ -31,6 +28,12 @@ function ParametricMovement.new(modelTemplate: Model | BasePart, instanceCacheAm
 	self._movementStarts = {}
 	self._movementUpdates = {}
 	self._movementEnds = {}
+	self._instanceCacher = instanceCacher(modelTemplate, parent, instanceCacheAmount or 10)
+
+	self._instances = {}
+	self._cframes = {}
+	self._raycasts = {}
+	self._projectiles = {}
 
 	self:_start()
 
@@ -53,7 +56,7 @@ one projectile:
   20:45:47.846  0.000018799999907059828  -  Server - ParametricMovement:128
   20:45:47.863  0.00001920000022437307  -  Server - ParametricMovement:128
 
-  many projectiles
+  many self._projectiles
   09:59:14.063  0.0010320000000092477  -  Server - ParametricMovement:195
   09:59:14.079  0.0010421000000633285  -  Server - ParametricMovement:195
   09:59:14.096  0.001042399999960253  -  Server - ParametricMovement:195
@@ -97,10 +100,8 @@ one projectile:
 
 function ParametricMovement:_start()
 	self._heartbeatConnection = RunService.Heartbeat:Connect(function(deltaTime)
-		local start = os.clock()
-
-		for index = #projectiles, 1, -1 do
-			local projectile = projectiles[index]
+		for index = #self._projectiles, 1, -1 do
+			local projectile = self._projectiles[index]
 
 			local lastPoint = getPositionAtTime(
 				projectile.totalDelta,
@@ -120,56 +121,53 @@ function ParametricMovement:_start()
 
 			local result = workspace:Raycast(lastPoint, rayDirection, projectile.castParams)
 
-			raycasts[index] = result
-			cframes[index] = CFrame.lookAt(currentPoint, lastPoint)
+			self._raycasts[index] = result
+			self._cframes[index] = CFrame.lookAt(currentPoint, lastPoint)
 
 			if projectile.totalDelta > 1 then
 				for _, callback in self._movementEnds do
-					task.spawn(function()
-						local instance = instances[index]
+					local instance = self._instances[index]
 
-						local success, _ = pcall(callback, instance, result)
+					self._instanceCacher.returnInstance(instance)
 
-						if not success then
-							return
-						end
-					end)
+					pcall(callback, instance, result)
 				end
 
-				table.remove(cframes, index)
-				table.remove(instances, index)
-				table.remove(raycasts, index)
-				table.remove(projectiles, index)
+				table.remove(self._cframes, index)
+				table.remove(self._instances, index)
+				table.remove(self._raycasts, index)
+				table.remove(self._projectiles, index)
 			end
 		end
 
-		print(os.clock() - start)
-
 		-- yeah that's right im not afraid of you, error all you want
 		for _, callback in self._movementUpdates do
-			callback(instances, cframes, raycasts)
+			callback(self._instances, self._cframes, self._raycasts)
 		end
 	end)
 end
 
 function ParametricMovement:launchProjectile(movementParams: MovementParams)
-	local template = self._template:Clone()
-	template.Parent = workspace
+	local instance = self._instanceCacher.getInstance()
 
 	-- mixed soa and aos structure
-	-- does aoa improve performance on its own here? no
-	table.insert(cframes, movementParams.origin)
-	table.insert(instances, template)
-	table.insert(projectiles, {
+	-- does aos improve performance on its own here? no
+	table.insert(self._cframes, movementParams.origin)
+	table.insert(self._instances, instance)
+	table.insert(self._projectiles, {
 		totalDelta = 0,
 		acceleration = movementParams.acceleration,
 		lifetime = movementParams.lifetime,
 		velocity = movementParams.velocity,
 		origin = movementParams.origin,
 	})
+
+	for _, movementStart in self._movementStarts do
+		movementStart(instance, movementParams)
+	end
 end
 
-function ParametricMovement:onMovementStart(callback: () -> ())
+function ParametricMovement:onMovementStart(callback: (instance: Instance, movementParams: MovementParams) -> ())
 	table.insert(self._movementStarts, callback)
 end
 
@@ -181,11 +179,7 @@ function ParametricMovement:onMovementUpdate(callback: (
 	table.insert(self._movementUpdates, callback)
 end
 
-function ParametricMovement:onMovementEnd(callback: (
-	instances: { Instance },
-	cframes: { CFrame },
-	raycasts: { RaycastResult }
-) -> ())
+function ParametricMovement:onMovementEnd(callback: (instance: Instance, raycast: RaycastResult) -> ())
 	table.insert(self._movementEnds, callback)
 end
 

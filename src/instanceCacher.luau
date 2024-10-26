@@ -1,7 +1,7 @@
 local OUT_OF_RENDER_CFRAME = CFrame.new(10e7, 0, 0)
 local INSTANCE_COUNT = 10
 
-local function instanceCacher(template: Part, parent: Instance?, instanceCount: number)
+local function instanceCacher(template: Instance, parent: Instance?, instanceCount: number)
 	local inUse = {}
 	local instances = {}
 
@@ -17,7 +17,7 @@ local function instanceCacher(template: Part, parent: Instance?, instanceCount: 
 
 	_createInstances(instanceCount)
 
-	local function getInstance(): Part
+	local function getInstance(): Instance
 		local index = #instances
 
 		if index == 0 then
@@ -34,7 +34,7 @@ local function instanceCacher(template: Part, parent: Instance?, instanceCount: 
 		return instance
 	end
 
-	local function returnInstance(instance: Part)
+	local function returnInstance(instance: Instance)
 		local index = table.find(inUse, instance)
 
 		table.insert(instances, instance)
