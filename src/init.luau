@@ -3,7 +3,6 @@ export type MovementParams = {
 	velocity: Vector3,
 	acceleration: Vector3,
 	lifetime: number,
-	rayraycastParams: RaycastParams,
 }
 
 local RunService = game:GetService("RunService")
@@ -21,7 +20,12 @@ end
 local ParametricMovement = {}
 ParametricMovement.__index = ParametricMovement
 
-function ParametricMovement.new(modelTemplate: Model | BasePart, parent: Instance?, instanceCacheAmount: number?)
+function ParametricMovement.new(
+	modelTemplate: Model | BasePart,
+	parent: Instance?,
+	instanceCacheAmount: number?,
+	raycastParams: RaycastParams
+)
 	local self = setmetatable({}, ParametricMovement)
 
 	self._template = modelTemplate
@@ -35,6 +39,8 @@ function ParametricMovement.new(modelTemplate: Model | BasePart, parent: Instanc
 	self._cframes = {}
 	self._raycasts = {}
 	self._projectiles = {}
+
+	self._raycastParams = raycastParams
 
 	self:_start()
 
@@ -62,7 +68,7 @@ function ParametricMovement:_start()
 			local displacement = currentPoint - lastPoint
 			local rayDirection = displacement.Unit * segmentVelocity.Magnitude * deltaTime
 
-			local result = workspace:Raycast(lastPoint, rayDirection, projectile.raycastParams)
+			local result = workspace:Raycast(lastPoint, rayDirection, self._raycastParams)
 
 			self._raycasts[index] = result
 			self._cframes[index] = CFrame.lookAt(currentPoint, lastPoint)
@@ -103,7 +109,6 @@ function ParametricMovement:launchProjectile(movementParams: MovementParams)
 		lifetime = movementParams.lifetime,
 		velocity = movementParams.velocity,
 		origin = movementParams.origin,
-		raycastParams = movementParams.rayraycastParams,
 	})
 
 	for _, movementStart in self._movementStarts do
